@@ -1,1 +1,83 @@
+#docker run -it --rm \
+#    -v synapse_data,dst=/data \
+#    -e SYNAPSE_SERVER_NAME=matrix.example.com \
+#    -e SYNAPSE_REPORT_STATS=no \
+#    matrixdotorg/synapse:latest generate
 
+#edit homeserver.yaml
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - matrix-network
+    volumes:
+      - redis_data:/data
+  synapse-app:
+    image: matrixdotorg/synapse:latest
+    restart: unless-stopped
+    ports:
+      - '8008:8008'
+      #- '8448:8448'
+    volumes:
+      - synapse_data:/data
+    networks:
+      - matrix-network
+      - ingress-network
+    depends_on:
+      - redis
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.example.com
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.homeserver
+  worker-federation-sender:
+    image: matrixdotorg/synapse:latest
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+    networks:
+      - matrix-network
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.example.com
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.federation_sender
+    depends_on:
+      - synapse-app
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker"
+      - "--config-path"
+      - "/data/homeserver.yaml"
+      - "--config-path"
+      - "/data/federation_sender.yaml"
+  synapse-admin:
+    image: awesometechnologies/synapse-admin:latest
+    restart: unless-stopped
+    ports:
+      - '8085:80'
+    volumes:
+      - synapse_data:/data
+    networks:
+      - matrix-network
+    depends_on:
+      - synapse-app
+volumes:
+  synapse_data:
+    external: true
+  redis_data:
+    name: redis_data
+    external: true
+networks:
+  matrix-network:
+    name: matrix-network
+    external: true
+  ingress-network:
+    name: ingress-network
+    external: true
+
+#docker exec -it synapse-container-name register_new_matrix_user http://localhost:8008 -c /data/homeserver.yaml
