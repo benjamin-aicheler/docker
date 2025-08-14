@@ -5,6 +5,7 @@
 #    matrixdotorg/synapse:latest generate
 
 #edit homeserver.yaml
+#create worker.yaml
 
 services:
   redis:
@@ -15,7 +16,7 @@ services:
     volumes:
       - redis_data:/data
   synapse-app:
-    image: matrixdotorg/synapse:latest
+    image: matrixdotorg/synapse:v1.136.0
     restart: unless-stopped
     ports:
       - '8008:8008'
@@ -33,19 +34,19 @@ services:
       - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
       - SYNAPSE_WORKER=synapse.app.homeserver
   worker-federation-sender:
-    image: matrixdotorg/synapse:latest
+    image: matrixdotorg/synapse:v1.136.0
     restart: unless-stopped
     volumes:
-      - synapse_data:/data
+      - matrix_data:/data
     networks:
-      - matrix-network
+      - synapse_network
     environment:
       - SYNAPSE_SERVER_NAME=matrix.example.com
       - SYNAPSE_REPORT_STATS=no
       - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
-      - SYNAPSE_WORKER=synapse.app.federation_sender
+      - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
-      - synapse-app
+      - matrix
       - redis
     command:
       - "run"
@@ -54,7 +55,30 @@ services:
       - "--config-path"
       - "/data/homeserver.yaml"
       - "--config-path"
-      - "/data/federation_sender.yaml"
+      - "/data/federation_sender.yaml" # don't forget to create
+  worker-stream-writer:
+    image: matrixdotorg/synapse:v1.136.0
+    restart: unless-stopped
+    volumes:
+      - matrix_data:/data
+    networks:
+      - synapse_network
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.example.com
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.generic_worker
+    depends_on:
+      - matrix
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker"
+      - "--config-path"
+      - "/data/homeserver.yaml"
+      - "--config-path"
+      - "/data/stream_writer.yaml" # don't forget to create
   synapse-admin:
     image: awesometechnologies/synapse-admin:latest
     restart: unless-stopped
