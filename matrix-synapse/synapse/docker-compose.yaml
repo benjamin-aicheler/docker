@@ -4,7 +4,7 @@
 #    -e SYNAPSE_REPORT_STATS=no \
 #    matrixdotorg/synapse:latest generate
 
-#edit homeserver.yaml
+#edit homeserver.yaml, include workers
 #create worker.yaml
 
 services:
