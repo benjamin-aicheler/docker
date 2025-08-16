@@ -33,6 +33,12 @@ services:
       - SYNAPSE_REPORT_STATS=no
       - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
       - SYNAPSE_WORKER=synapse.app.homeserver
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
   worker-federation-sender:
     image: matrixdotorg/synapse:v1.136.0
     restart: unless-stopped
@@ -56,6 +62,12 @@ services:
       - "/data/homeserver.yaml"
       - "--config-path"
       - "/data/federation_sender.yaml" # don't forget to create
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:9097/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
   worker-stream-writer:
     image: matrixdotorg/synapse:v1.136.0
     restart: unless-stopped
