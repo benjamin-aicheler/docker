@@ -63,7 +63,7 @@ services:
       - "--config-path"
       - "/data/federation_sender.yaml" # don't forget to create
     healthcheck:
-      test: ["CMD", "curl", "-fSs", "http://localhost:9097/health"]
+      test: ["CMD", "curl", "-fSs", "http://localhost:9095/health"]
       interval: 15s
       timeout: 5s
       retries: 3
