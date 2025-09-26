@@ -1,0 +1,13 @@
+#/etc/crowdsec/parsers/s02-enrich/matrix_whitelist.yaml
+#credits go to nacorid, tyvm
+name: nacorid/matrix_whitelist
+description: "Whitelist false-positive matrix events"
+whitelist:
+  reason: "matrix federation may look like http-crawling/probing"
+  ip:
+  cidr:
+  expression:
+    - "evt.Parsed.request contains '/_matrix/'"
+    - "evt.Parsed.request contains '/_synapse/'"
+    - "evt.Parsed.request contains '/_dendrite/'"
+    - "evt.Parsed.request contains '/_conduwuit/'"
