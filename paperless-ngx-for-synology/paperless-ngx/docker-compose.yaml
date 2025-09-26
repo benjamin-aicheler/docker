@@ -1,0 +1,57 @@
+services:
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    volumes:
+      - /volume1/docker/paperless-ngx/redisdata:/data:rw
+    networks:
+      - paperless_network
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on:
+
+      - broker
+      - gotenberg
+      - tika
+    ports:
+      - "8000:8000"
+    volumes:
+      - /volume1/docker/paperless-ngx/data:/usr/src/paperless/data:rw
+      - /volume1/docker/paperless-ngx/media:/usr/src/paperless/media:rw
+      - /volume1/docker/paperless-ngx/export:/usr/src/paperless/export:rw
+      - /volume1/docker/paperless-ngx/consume:/usr/src/paperless/consume:rw
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBUSER: uSer
+      PAPERLESS_DBPASS: pW
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_TIME_ZONE: Europe/Berlin
+      PAPERLESS_OCR_LANGUAGE: deu+eng
+      PAPERLESS_FILENAME_FORMAT: "{{ created_year }}/{{ correspondent }}/{{ document_type }}/{{ title }}"
+      #Synology user with rw access to /volume1/docker/paperless-ngx
+      USERMAP_UID: 1026
+      USERMAP_GID: 100
+    networks:
+      - paperless_network
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8.22
+    restart: unless-stopped
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+    networks:
+      - paperless_network
+  tika:
+    image: docker.io/apache/tika:latest
+    restart: unless-stopped
+    networks:
+      - paperless_network
+networks:
+  paperless_network:
+    name: paperless_network
+    external: true

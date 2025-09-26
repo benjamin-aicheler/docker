@@ -1,0 +1,23 @@
+services:
+  db:
+    image: docker.io/library/postgres:17
+    restart: unless-stopped
+    volumes:
+      - /volume1/docker/paperless-ngx/pgdata:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: uSer
+      POSTGRES_PASSWORD: pW
+    networks:
+      - paperless_network
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - 8082:8080
+    networks:
+      - paperless_network
+networks:
+  paperless_network:
+    name: paperless_network
+    external: true
