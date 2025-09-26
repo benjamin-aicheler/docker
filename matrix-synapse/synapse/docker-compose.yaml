@@ -12,47 +12,77 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     networks:
-      - matrix-network
+      - matrix-network-v6
     volumes:
       - redis_data:/data
   synapse-app:
-    image: matrixdotorg/synapse:v1.136.0
+    image: matrixdotorg/synapse:latest
     restart: unless-stopped
     ports:
       - '8008:8008'
       #- '8448:8448'
     volumes:
       - synapse_data:/data
+      - postgres_sockets:/var/run/postgresql
+      - synapse_sockets:/sockets
     networks:
-      - matrix-network
-      - ingress-network
+      - matrix-network-v6
+      - ingress-network-v6
     depends_on:
       - redis
     environment:
-      - SYNAPSE_SERVER_NAME=matrix.example.com
+      - SYNAPSE_SERVER_NAME=matrix.whereever.org
       - SYNAPSE_REPORT_STATS=no
       - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
       - SYNAPSE_WORKER=synapse.app.homeserver
+  worker-federation-sender:
+    image: matrixdotorg/synapse:latest
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+      - postgres_sockets:/var/run/postgresql
+      - synapse_sockets:/sockets
+    networks:
+      - matrix-network-v6
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.whereever.org
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.generic_worker
+    depends_on:
+      - synapse-app
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
+      - "--config-path"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
+      - "--config-path"
+      - "/data/federation_sender.yaml" # ...und dann die Worker-spezifische Konfiguration.
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 30s
-  worker-federation-sender:
-    image: matrixdotorg/synapse:v1.136.0
+  worker-stream-writer:
+    image: matrixdotorg/synapse:latest
     restart: unless-stopped
     volumes:
-      - matrix_data:/data
+      - synapse_data:/data
+      - postgres_sockets:/var/run/postgresql
+      - synapse_sockets:/sockets
     networks:
-      - synapse_network
+      - matrix-network-v6
+      - ingress-network-v6
     environment:
-      - SYNAPSE_SERVER_NAME=matrix.example.com
+      - SYNAPSE_SERVER_NAME=matrix.whereever.org
       - SYNAPSE_REPORT_STATS=no
       - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
-      - matrix
+      - synapse-app
       - redis
     command:
       - "run"
@@ -61,36 +91,13 @@ services:
       - "--config-path"
       - "/data/homeserver.yaml"
       - "--config-path"
-      - "/data/federation_sender.yaml" # don't forget to create
+      - "/data/stream_writer.yaml"
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9095/health"]
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 30s
-  worker-stream-writer:
-    image: matrixdotorg/synapse:v1.136.0
-    restart: unless-stopped
-    volumes:
-      - matrix_data:/data
-    networks:
-      - synapse_network
-    environment:
-      - SYNAPSE_SERVER_NAME=matrix.example.com
-      - SYNAPSE_REPORT_STATS=no
-      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
-      - SYNAPSE_WORKER=synapse.app.generic_worker
-    depends_on:
-      - matrix
-      - redis
-    command:
-      - "run"
-      - "-m"
-      - "synapse.app.generic_worker"
-      - "--config-path"
-      - "/data/homeserver.yaml"
-      - "--config-path"
-      - "/data/stream_writer.yaml" # don't forget to create
   synapse-admin:
     image: awesometechnologies/synapse-admin:latest
     restart: unless-stopped
@@ -99,21 +106,28 @@ services:
     volumes:
       - synapse_data:/data
     networks:
-      - matrix-network
+      - matrix-network-v6
     depends_on:
       - synapse-app
 volumes:
   synapse_data:
     external: true
+  postgres_sockets:
+    external: true
   redis_data:
     name: redis_data
     external: true
+  synapse_sockets:
+    name: synapse_sockets
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
 networks:
-  matrix-network:
-    name: matrix-network
+  matrix-network-v6:
+    name: matrix-network-v6
     external: true
-  ingress-network:
-    name: ingress-network
+  ingress-network-v6:
+    name: ingress-network-v6
     external: true
 
 #docker exec -it synapse-container-name register_new_matrix_user http://localhost:8008 -c /data/homeserver.yaml
