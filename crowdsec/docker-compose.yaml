@@ -1,0 +1,29 @@
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    environment:
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/nginx-proxy-manager"
+      GID: "${GID-1000}"
+      TZ: "Europe/Berlin"
+    volumes:
+      - /var/log/syslog:/var/log/syslog:ro
+      - /var/log/auth.log:/var/log/auth.log:ro
+      - npm_logs:/var/log/npm
+      - crowdsec_db:/var/lib/crowdsec/data
+      - crowdsec_config:/etc/crowdsec
+    networks:
+      - crowdsec-network-v6
+volumes:
+  npm_logs:
+    external: true
+  crowdsec_db:
+    external: true
+  crowdsec_config:
+    external: true
+networks:
+  crowdsec-network-v6:
+    name: crowdsec-network-v6
+    external: true

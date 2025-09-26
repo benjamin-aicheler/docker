@@ -1,0 +1,26 @@
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+      - '8448:443'
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+      - npm_logs:/data/logs
+    networks:
+      - ingress-network-v6
+volumes:
+  npm_data:
+    external: true
+  npm_letsencrypt:
+    external: true
+  npm_logs:
+    external: true
+networks:
+  ingress-network-v6:
+    name: ingress-network-v6
+    external: true
