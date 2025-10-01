@@ -1,0 +1,50 @@
+#enable redis
+redis:
+  enabled: true
+  host: "redis"
+
+#federation senders
+federation_sender_instances:
+  - federation_sender_1
+  - federation_sender_2
+worker_replication_secret: "mambo#5"
+outbound_federation_restricted_to:
+  - federation_sender_1
+  - federation_sender_2
+
+#stream writers
+stream_writers:
+  events: stream_writer_2
+  typing: stream_writer_1
+  to_device: stream_writer_1
+  account_data: stream_writer_1
+  receipts: stream_writer_1
+  presence: stream_writer_1
+  push_rules: stream_writer_1
+  device_lists: stream_writer_1
+run_background_tasks_on: stream_writer_2
+notify_appservices_from_worker: stream_writer_2
+pusher_instances:
+  - stream_writer_2
+
+#instance map
+instance_map:
+  main:
+    path: "/sockets/synapse_replication_main.sock"
+  federation_sender_1:
+    path: "/sockets/synapse_worker-federation-sender.sock"
+  federation_sender_2:
+    path: "/sockets/synapse_worker-federation-sender-2.sock"
+  stream_writer_1:
+    path: "/sockets/synapse_worker-stream-writer.sock"
+  stream_writer_2:
+    path: "/sockets/synapse_worker-stream-writer-2.sock"
+
+#listeners
+listeners:
+  - ...
+  - type: http
+    path: "/sockets/synapse_replication_main.sock"
+    resources:
+      - names: [replication]
+        compress: false

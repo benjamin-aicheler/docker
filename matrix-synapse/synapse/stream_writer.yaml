@@ -1,0 +1,20 @@
+worker_app: synapse.app.generic_worker
+worker_name: stream_writer_1
+
+worker_listeners:
+  - type: http
+#    port: 9094
+    path: "/sockets/synapse_worker-stream-writer.sock"
+    resources:
+      - names: [replication]
+        compress: false
+  - type: http
+    port: 9095
+    tls: false
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+
+
+worker_log_config: "/data/matrix.techlife.home64.de.log.config"
