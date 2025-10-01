@@ -27,3 +27,5 @@ networks:
   crowdsec-network-v6:
     name: crowdsec-network-v6
     external: true
+
+#sudo docker exec -t crowdsec-crowdsec-1 cscli console enroll -e context <KEY>

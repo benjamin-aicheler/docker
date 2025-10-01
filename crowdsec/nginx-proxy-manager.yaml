@@ -1,0 +1,6 @@
+#container
+#/etc/crowdsec/acquis.d/nginx-proxy-manager.yaml
+filenames:
+  - /var/log/npm/*.log
+labels:
+  type: nginx-proxy-manager
