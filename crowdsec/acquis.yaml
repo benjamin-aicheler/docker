@@ -1,0 +1,7 @@
+#container
+#/etc/crowdsec/acquis.yaml
+filenames:
+ - /var/log/auth.log
+ - /var/log/syslog
+labels:
+  type: syslog

@@ -1,3 +1,4 @@
+#host
 curl -s https://install.crowdsec.net | sudo sh
 
 iptables -->
