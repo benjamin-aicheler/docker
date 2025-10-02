@@ -1,0 +1,19 @@
+worker_app: synapse.app.generic_worker
+worker_name: "federation_reader_1"
+
+worker_listeners:
+  - type: http
+    port: 9094
+    tls: false
+    x_forwarded: true
+    resources:
+      - names: [federation]
+        compress: false
+  - type: http
+    path: "/sockets/synapse_worker-federation-reader.sock"
+    resources:
+      - names: [replication]
+        compress: false
+
+
+worker_log_config: /data/matrix.techlife.home64.de.log.config

@@ -39,6 +39,8 @@ instance_map:
     path: "/sockets/synapse_worker-stream-writer.sock"
   stream_writer_2:
     path: "/sockets/synapse_worker-stream-writer-2.sock"
+  federation_reader_1:
+    path: "/sockets/synapse_worker-federation-reader.sock"
 
 #listeners
 listeners:

@@ -7,6 +7,8 @@
 #edit homeserver.yaml, include workers
 #create worker.yaml
 
+#set custom locations in npm for workers
+
 services:
   redis:
     image: redis:7-alpine
@@ -157,6 +159,38 @@ services:
       - "/data/stream_writer_2.yaml"
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+  worker-federation-reader:
+    image: matrixdotorg/synapse:latest
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+      - postgres_sockets:/var/run/postgresql
+      - synapse_sockets:/sockets
+    networks:
+      - matrix-network-v6
+      - ingress-network-v6
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.generic_worker
+    depends_on:
+      - synapse-app
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
+      - "--config-path"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
+      - "--config-path"
+      - "/data/federation_reader.yaml" # ...und dann die Worker-spezifische Konfiguration.
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:9094/health"]
       interval: 15s
       timeout: 5s
       retries: 3
