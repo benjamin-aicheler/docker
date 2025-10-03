@@ -1,0 +1,20 @@
+worker_app: synapse.app.generic_worker
+worker_name: "federation_sender_3"
+
+worker_listeners:
+  - type: http
+#    port: 9094
+    path: "/sockets/synapse_worker-federation-sender-3.sock"
+    resources:
+      - names: [replication]
+        compress: false
+  - type: http
+    port: 9096
+    tls: false
+    x_forwarded: false
+    resources:
+      - names: [health]
+        compress: false
+
+
+worker_log_config: /data/matrix.techlife.home64.de.log.config

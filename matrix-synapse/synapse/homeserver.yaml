@@ -7,11 +7,14 @@ redis:
 federation_sender_instances:
   - federation_sender_1
   - federation_sender_2
+  - federation_sender_3
+  - federation_sender_4
 worker_replication_secret: "mambo#5"
 outbound_federation_restricted_to:
   - federation_sender_1
   - federation_sender_2
-
+  - federation_sender_3
+  - federation_sender_4
 #stream writers
 stream_writers:
   events: stream_writer_2
@@ -35,6 +38,10 @@ instance_map:
     path: "/sockets/synapse_worker-federation-sender.sock"
   federation_sender_2:
     path: "/sockets/synapse_worker-federation-sender-2.sock"
+  federation_sender_3:
+    path: "/sockets/synapse_worker-federation-sender-3.sock"
+  federation_sender_4:
+    path: "/sockets/synapse_worker-federation-sender-4.sock"
   stream_writer_1:
     path: "/sockets/synapse_worker-stream-writer.sock"
   stream_writer_2:
