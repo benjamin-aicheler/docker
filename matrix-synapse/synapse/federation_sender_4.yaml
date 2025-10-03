@@ -3,12 +3,6 @@ worker_name: "federation_sender_4"
 
 worker_listeners:
   - type: http
-#    port: 9094
-    path: "/sockets/synapse_worker-federation-sender-4.sock"
-    resources:
-      - names: [replication]
-        compress: false
-  - type: http
     port: 9096
     tls: false
     x_forwarded: false
