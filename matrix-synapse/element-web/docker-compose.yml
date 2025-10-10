@@ -1,0 +1,16 @@
+services:
+  app:
+    image: 'vectorim/element-web:latest'
+    restart: unless-stopped
+    volumes:
+      - /mnt/docker/mounts/element-web/config.json:/app/config.json
+    networks:
+      - ingress-network-v6
+      - matrix-network-v6
+networks:
+  ingress-network-v6:
+    name: ingress-network-v6
+    external: true
+  matrix-network-v6:
+    name: matrix-network-v6
+    external: true

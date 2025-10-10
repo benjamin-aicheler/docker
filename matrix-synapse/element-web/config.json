@@ -1,0 +1,20 @@
+{
+  "default_server_config":
+  {
+    "m.homeserver":
+    {
+      "base_url": "https://matrix.techlife.home64.de"
+    }
+  },
+  "brand": "Element",
+  "show_labs_settings": false,
+  "room_directory": {
+    "servers": ["matrix.techlife.home64.de", "matrix.org"]
+  },
+  "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
+  "features": {
+    "feature_video_rooms": false,
+    "feature_group_calls": false,
+    "feature_element_call_video_rooms": false
+  }
+}

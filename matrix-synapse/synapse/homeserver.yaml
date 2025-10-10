@@ -1,3 +1,5 @@
+#just excerpts!
+
 #enable redis
 redis:
   enabled: true
