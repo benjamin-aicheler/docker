@@ -1,0 +1,33 @@
+services:
+  auth-service:
+    image: ghcr.io/element-hq/lk-jwt-service:latest
+    container_name: element-call-jwt
+    hostname: auth-server
+    environment:
+      - LIVEKIT_JWT_PORT=8080
+      - LIVEKIT_URL=https://matrixrtc.techlife.home64.de/livekit/sfu
+      - LIVEKIT_KEY=kEy
+      - LIVEKIT_SECRET=sEcret
+      - LIVEKIT_FULL_ACCESS_HOMESERVERS=matrix.techlife.home64.de
+    restart: unless-stopped
+    #ports:
+      #- 8070:8080
+    networks:
+      - ingress-network-v6
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: element-call-livekit
+    command: --config /etc/livekit.yaml
+    ports:
+      #- 7880:7880/tcp
+      - 7881:7881/tcp
+      - 50100-50200:50100-50200/udp
+    restart: unless-stopped
+    volumes:
+      - "/mnt/docker/mounts/element-call/config.yaml:/etc/livekit.yaml:ro"
+    networks:
+      - ingress-network-v6
+networks:
+  ingress-network-v6:
+    name: ingress-network-v6
+    external: true
