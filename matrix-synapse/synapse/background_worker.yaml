@@ -1,0 +1,19 @@
+worker_app: synapse.app.generic_worker
+worker_name: background_worker_1
+
+worker_listeners:
+  - type: http
+#    port: 9094
+    path: "/sockets/synapse_worker-background-worker.sock"
+    resources:
+      - names: [replication]
+        compress: false
+  - type: http
+    port: 9097
+    tls: false
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+  - type: metrics
+    port: 9104

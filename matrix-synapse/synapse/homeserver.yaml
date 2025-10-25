@@ -23,10 +23,11 @@ stream_writers:
   presence: stream_writer_1
   push_rules: stream_writer_1
   device_lists: stream_writer_1
-run_background_tasks_on: stream_writer_2
-notify_appservices_from_worker: stream_writer_2
+run_background_tasks_on: background_worker_1
+notify_appservices_from_worker: background_worker_1
+update_user_directory_from_worker: background_worker_1
 pusher_instances:
-  - stream_writer_2
+  - background_worker_1
 
 #instance map
 instance_map:
@@ -38,6 +39,8 @@ instance_map:
     path: "/sockets/synapse_worker-stream-writer-2.sock"
   federation_reader_1:
     path: "/sockets/synapse_worker-federation-reader.sock"
+  background_worker_1:
+    path: "/sockets/synapse_worker-background-worker.sock"
 
 #listeners
 listeners:
