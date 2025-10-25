@@ -10,6 +10,17 @@
 #set custom locations in npm for workers
 
 services:
+  mjolnir:
+    image: ${MJOLNIR_IMAGE}
+    restart: unless-stopped
+    volumes:
+      - mjolnir_data:/data
+    networks:
+      - matrix-network-v6
+    depends_on:
+      synapse-app:
+        condition: service_healthy
+        restart: true
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -18,18 +29,18 @@ services:
     volumes:
       - redis_data:/data
   synapse-app:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     ports:
       - '8008:8008'
       #- '8448:8448'
     volumes:
       - synapse_data:/data
-      - postgres_sockets:/var/run/postgresql
       - synapse_sockets:/sockets
     networks:
-      - matrix-network-v6
-      - ingress-network-v6
+      matrix-network-v6:
+      ingress-network-v6:
+      monitoring-network-v6:
     depends_on:
       - redis
     environment:
@@ -37,15 +48,21 @@ services:
       - SYNAPSE_REPORT_STATS=no
       - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
       - SYNAPSE_WORKER=synapse.app.homeserver
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:8008/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
   worker-federation-sender:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     volumes:
       - synapse_data:/data
-      - postgres_sockets:/var/run/postgresql
       - synapse_sockets:/sockets
     networks:
       - matrix-network-v6
+      - monitoring-network-v6
     environment:
       - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
       - SYNAPSE_REPORT_STATS=no
@@ -57,26 +74,26 @@ services:
     command:
       - "run"
       - "-m"
-      - "synapse.app.generic_worker"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
       - "--config-path"
-      - "/data/homeserver.yaml"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
       - "--config-path"
-      - "/data/federation_sender.yaml"
+      - "/data/federation_sender.yaml" # ...und dann die Worker-spezifische Konfiguration.
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
-      interval: 15s
-      timeout: 5s
+      interval: 60s
+      timeout: 10s
       retries: 3
       start_period: 60s
   worker-federation-sender-2:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     volumes:
       - synapse_data:/data
-      - postgres_sockets:/var/run/postgresql
       - synapse_sockets:/sockets
     networks:
       - matrix-network-v6
+      - monitoring-network-v6
     environment:
       - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
       - SYNAPSE_REPORT_STATS=no
@@ -88,27 +105,91 @@ services:
     command:
       - "run"
       - "-m"
-      - "synapse.app.generic_worker"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
       - "--config-path"
-      - "/data/homeserver.yaml"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
       - "--config-path"
-      - "/data/federation_sender_2.yaml"
+      - "/data/federation_sender_2.yaml" # ...und dann die Worker-spezifische Konfiguration.
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
-      interval: 15s
-      timeout: 5s
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+  worker-federation-sender-3:
+    image: ${SYNAPSE_IMAGE}
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+      - synapse_sockets:/sockets
+    networks:
+      - matrix-network-v6
+      - monitoring-network-v6
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.generic_worker
+    depends_on:
+      - synapse-app
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
+      - "--config-path"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
+      - "--config-path"
+      - "/data/federation_sender_3.yaml" # ...und dann die Worker-spezifische Konfiguration.
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+  worker-federation-sender-4:
+    image: ${SYNAPSE_IMAGE}
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+      - synapse_sockets:/sockets
+    networks:
+      - matrix-network-v6
+      - monitoring-network-v6
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.generic_worker
+    depends_on:
+      - synapse-app
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
+      - "--config-path"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
+      - "--config-path"
+      - "/data/federation_sender_4.yaml" # ...und dann die Worker-spezifische Konfiguration.
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
+      interval: 60s
+      timeout: 10s
       retries: 3
       start_period: 60s
   worker-stream-writer:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     volumes:
       - synapse_data:/data
-      - postgres_sockets:/var/run/postgresql
       - synapse_sockets:/sockets
     networks:
-      - matrix-network-v6
-      - ingress-network-v6
+      matrix-network-v6:
+      ingress-network-v6:
+        ipv4_address: 172.18.0.4
+        ipv6_address: fd42:dead:beef:c0de:1::4
+      monitoring-network-v6:
     environment:
       - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
       - SYNAPSE_REPORT_STATS=no
@@ -120,27 +201,29 @@ services:
     command:
       - "run"
       - "-m"
-      - "synapse.app.generic_worker"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
       - "--config-path"
-      - "/data/homeserver.yaml"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
       - "--config-path"
-      - "/data/stream_writer.yaml"
+      - "/data/stream_writer.yaml" # ...und dann die Worker-spezifische Konfiguration.
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9095/health"]
-      interval: 15s
-      timeout: 5s
+      interval: 60s
+      timeout: 10s
       retries: 3
       start_period: 60s
   worker-stream-writer-2:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     volumes:
       - synapse_data:/data
-      - postgres_sockets:/var/run/postgresql
       - synapse_sockets:/sockets
     networks:
-      - matrix-network-v6
-      - ingress-network-v6
+      matrix-network-v6:
+      ingress-network-v6:
+        ipv4_address: 172.18.0.5
+        ipv6_address: fd42:dead:beef:c0de:1::5
+      monitoring-network-v6:
     environment:
       - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
       - SYNAPSE_REPORT_STATS=no
@@ -152,27 +235,29 @@ services:
     command:
       - "run"
       - "-m"
-      - "synapse.app.generic_worker"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
       - "--config-path"
-      - "/data/homeserver.yaml"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
       - "--config-path"
-      - "/data/stream_writer_2.yaml"
+      - "/data/stream_writer_2.yaml" # ...und dann die Worker-spezifische Konfiguration.
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9096/health"]
-      interval: 15s
-      timeout: 5s
+      interval: 60s
+      timeout: 10s
       retries: 3
       start_period: 60s
   worker-federation-reader:
-    image: matrixdotorg/synapse:latest
+    image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     volumes:
       - synapse_data:/data
-      - postgres_sockets:/var/run/postgresql
       - synapse_sockets:/sockets
     networks:
-      - matrix-network-v6
-      - ingress-network-v6
+      matrix-network-v6:
+      ingress-network-v6:
+        ipv4_address: 172.18.0.6
+        ipv6_address: fd42:dead:beef:c0de:1::6
+      monitoring-network-v6:
     environment:
       - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
       - SYNAPSE_REPORT_STATS=no
@@ -191,12 +276,46 @@ services:
       - "/data/federation_reader.yaml" # ...und dann die Worker-spezifische Konfiguration.
     healthcheck:
       test: ["CMD", "curl", "-fSs", "http://localhost:9094/health"]
-      interval: 15s
-      timeout: 5s
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+  worker-background-worker:
+    image: ${SYNAPSE_IMAGE}
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+      - synapse_sockets:/sockets
+    networks:
+      matrix-network-v6:
+      ingress-network-v6:
+        ipv4_address: 172.18.0.11
+        ipv6_address: fd42:dead:beef:c0de:1::11
+      monitoring-network-v6:
+    environment:
+      - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
+      - SYNAPSE_REPORT_STATS=no
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - SYNAPSE_WORKER=synapse.app.generic_worker
+    depends_on:
+      - synapse-app
+      - redis
+    command:
+      - "run"
+      - "-m"
+      - "synapse.app.generic_worker" # Startet den generischen Worker-Prozess...
+      - "--config-path"
+      - "/data/homeserver.yaml"      # ...lädt zuerst die Hauptkonfiguration...
+      - "--config-path"
+      - "/data/background_worker.yaml" # ...und dann die Worker-spezifische Konfiguration.
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://localhost:9097/health"]
+      interval: 60s
+      timeout: 10s
       retries: 3
       start_period: 60s
   synapse-admin:
-    image: awesometechnologies/synapse-admin:latest
+    image: ${SYNAPSE_ADMIN_IMAGE}
     restart: unless-stopped
     ports:
       - '8085:80'
@@ -209,8 +328,6 @@ services:
 volumes:
   synapse_data:
     external: true
-  postgres_sockets:
-    external: true
   redis_data:
     name: redis_data
     external: true
@@ -219,12 +336,18 @@ volumes:
     driver_opts:
       type: tmpfs
       device: tmpfs
+  mjolnir_data:
+    name: mjolnir_data
+    external: true
 networks:
   matrix-network-v6:
     name: matrix-network-v6
     external: true
   ingress-network-v6:
     name: ingress-network-v6
+    external: true
+  monitoring-network-v6:
+    name: monitoring-network-v6
     external: true
 
 #docker exec -it synapse-container-name register_new_matrix_user http://localhost:8008 -c /data/homeserver.yaml
