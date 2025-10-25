@@ -1,3 +1,4 @@
+#this has not been tested and might not work, use at your own risk
 services:
   auth-service:
     image: ghcr.io/element-hq/lk-jwt-service:latest
