@@ -3,7 +3,7 @@
 #enable redis
 redis:
   enabled: true
-  host: "redis"
+  host: "valkey"
 
 #federation senders
 federation_sender_instances:
@@ -60,8 +60,6 @@ experimental_features:
   # MSC4222 needed for syncv2 state_after. This allow clients to
   # correctly track the state of the room.
   msc4222_enabled: true
-  #msc4140
-  msc4140_enabled: true
 # The maximum allowed duration by which sent events can be delayed, as
 # per MSC4140.
 max_event_delay_duration: 24h

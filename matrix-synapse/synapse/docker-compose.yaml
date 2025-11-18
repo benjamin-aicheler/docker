@@ -21,13 +21,13 @@ services:
       synapse-app:
         condition: service_healthy
         restart: true
-  redis:
-    image: redis:7-alpine
+  valkey:
+    image: valkey/valkey:9-alpine
     restart: unless-stopped
     networks:
       - matrix-network-v6
     volumes:
-      - redis_data:/data
+      - valkey_data:/data
   synapse-app:
     image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
@@ -42,7 +42,7 @@ services:
       ingress-network-v6:
       monitoring-network-v6:
     depends_on:
-      - redis
+      - valkey
     environment:
       - SYNAPSE_SERVER_NAME=matrix.techlife.home64.de
       - SYNAPSE_REPORT_STATS=no
@@ -70,7 +70,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -101,7 +101,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -132,7 +132,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -163,7 +163,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -197,7 +197,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -231,7 +231,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -265,7 +265,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
@@ -299,7 +299,7 @@ services:
       - SYNAPSE_WORKER=synapse.app.generic_worker
     depends_on:
       - synapse-app
-      - redis
+      - valkey
     command:
       - "run"
       - "-m"
