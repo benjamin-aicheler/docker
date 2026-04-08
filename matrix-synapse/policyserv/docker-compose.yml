@@ -1,0 +1,73 @@
+services:
+  policyserv:
+    image: ghcr.io/matrix-org/policyserv:v1.4.0
+    restart: unless-stopped
+    environment:
+      PS_DATABASE: postgres://xyz:xyz@policyservdb/policyserv?sslmode=disable
+      PS_DATABASE_READ: postgres://xyz:xyz@policyservdb/policyserv?sslmode=disable
+      PS_HOMESERVER_NAME: matrixpolicy.techlife.home64.de
+      PS_KEY_QUERY_SERVER: 'matrix.techlife.home64.de,ed25519:xyz'
+      PS_TRUSTED_ORIGINS: matrix.techlife.home64.de
+      PS_JOIN_SERVER: matrix.techlife.home64.de
+      PS_HOMESERVER_MEDIA_CLIENT_URL: https://matrix.techlife.home64.de
+      PS_HOMESERVER_MEDIA_CLIENT_ACCESS_TOKEN: syt_xyz
+      PS_SENDER_PREFILTER_ALLOWED_SENDERS: '@mjolnir:matrix.techlife.home64.de,@me:matrix.techlife.home64.de'
+      PS_HELLBAN_POSTFILTER_MINUTES: 5
+      PS_MEDIA_FILTER_MEDIA_TYPES: ''
+      PS_UNTRUSTED_MEDIA_FILTER_MEDIA_TYPES: ''
+      PS_KEYWORD_FILTER_KEYWORDS: ''
+      PS_JOIN_LOCALPART: policyserv
+      PS_MODERATOR_ACCESS_TOKENS: 'matrix.techlife.home64.de:syt_xyz'
+      PS_API_KEY: apikey
+      PS_HTTP_BIND: 0.0.0.0:8080
+    volumes:
+      - policyserv_data:/data
+    networks:
+      matrix-network-v6:
+      ingress-network-v6:
+        ipv4_address: 172.18.0.12
+        ipv6_address: fd42:dead:beef:c0de:1::12
+  policyserv-setup-bot:
+    # It's best to use the latest tagged version rather than main.
+    image: ghcr.io/matrix-org/policyserv-setup-bot:main
+    #ports:
+      # This is for healthz and is optional if you don't need it.
+      #- "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    environment:
+      USER_ID: '@policyserv:matrix.techlife.home64.de'
+      PASSWORD: 'pw'
+      HOMESERVER_URL: https://matrix.techlife.home64.de
+      # The safety team room must already exist, and have a pending invite for the bot. This
+      # will be the room where the bot posts activity and room application requests.
+      SAFETY_TEAM_ROOM_ID: '!xyz'
+      STORAGE_PATH: /data
+      POLICYSERV_BASE_URL: https://matrixpolicy.techlife.home64.de
+      POLICYSERV_API_KEY: apikey
+      POLICYSERV_SERVER_NAME: matrixpolicy.techlife.home64.de
+      # policyserv prints its public event signing key on startup. Look for the line starting
+      # with "Public event key:" and copy the base64 value after "ed25519:policy_server".
+      # This is currently optional, but may become required in the future.
+      POLICYSERV_EVENT_SIGNING_KEY: abc
+      APPEAL_DIRECTIONS: "To appeal this decision, please contact abuse@example.org"
+      COMMUNITY_RATE_LIMIT_WINDOW_MS: 600000
+      COMMUNITY_RATE_LIMIT_MAX: 10
+      USER_RATE_LIMIT_WINDOW_MS: 600000
+      USER_RATE_LIMIT_MAX: 10
+      HEALTHZ_BIND: 0.0.0.0:8080
+    volumes:
+      - policyservsetupbot_data:/data
+    networks:
+      matrix-network-v6:
+volumes:
+  policyserv_data:
+    external: true
+  policyservsetupbot_data:
+    external: true
+networks:
+  matrix-network-v6:
+    name: matrix-network-v6
+    external: true
+  ingress-network-v6:
+    name: ingress-network-v6
+    external: true
